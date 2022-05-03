@@ -93,7 +93,7 @@ def delete_cat(cat_id):
         rsp = {"msg": f"Could not find cat with id {cat_id}"}
         return jsonify(rsp), 404
 
-    db.session.delete(chosen_cat.id)
+    db.session.delete(chosen_cat)
     db.session.commit()
 
     return {
