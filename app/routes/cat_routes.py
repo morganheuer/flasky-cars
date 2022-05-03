@@ -51,6 +51,65 @@ def index_cats():
 
     return jsonify(result_list)
 
+# GET /cats/<cat_id>
+@bp.route("/<cat_id>", methods=["GET"])
+def get_cat_by_id(cat_id):
+    cat = get_cat_record_by_id(cat_id)
+    return jsonify(cat.to_dict())
+
+# PUT /cats/<cat_id>
+@bp.route("/<cat_id>", methods=["PUT"])
+def replace_cat_by_id(cat_id):
+    request_body = request.get_json()
+    cat = get_cat_record_by_id(cat_id)
+
+    cat.name = request_body["name"]
+    cat.personality = request_body["personality"]
+    cat.color = request_body["color"]
+
+    db.session.commit()
+    return jsonify(cat.to_dict())
+
+# DELETE /cats/<cat_id>
+@bp.route("/<cat_id>", methods=["DELETE"])
+def delete_cat_by_id(cat_id):
+    cat = get_cat_record_by_id(cat_id)
+    
+    db.session.delete(cat)
+    db.session.commit()
+
+    return make_response(f"Cat with id {cat_id} successfully deleted!")
+
+# PATCH /cats/<cat_id>
+@bp.route("/<cat_id>", methods=["PATCH"])
+def update_cat_with_id(cat_id):
+    cat = get_cat_record_by_id(cat_id)
+    request_body = request.get_json()
+    cat_keys = request_body.keys()
+
+    if "name" in cat_keys:
+        cat.name = request_body["name"]
+    if "color" in cat_keys:
+        cat.color = request_body["color"]
+    if "personality" in cat_keys:
+        cat.personality = request_body["personality"]
+
+    db.session.commit()
+    return jsonify(cat.to_dict())
+
+# Helper function to get a cat from the database
+def get_cat_record_by_id(id):
+    try:
+        id = int(id)
+    except ValueError:
+        abort(make_response(jsonify(dict(details=f"Invalid id {id}")), 400))
+
+    cat = Cat.query.get(id)
+    if cat:
+        return cat
+
+    abort(make_response(jsonify(dict(details=f"No cat with id {id} found")), 404))
+
 # def validate_cat(id):
 #     try:
 #         id = int(id)
