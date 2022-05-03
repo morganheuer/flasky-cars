@@ -32,39 +32,70 @@ def get_all_cats():
 
 
 
+@cats_bp.route('/<cat_id>', methods=['GET'])
+def get_one_cat(cat_id):
+    try:
+        cat_id = int(cat_id)
+    except ValueError:
+        rsp = {"msg": f"Invalid id: {cat_id}"}
+        return jsonify(rsp), 400
+    chosen_cat = Cat.query.get(cat_id)
 
-# @cats_bp.route('', methods=['GET'])
-# def get_all_cats():
-#     cat_response = []
-#     for cat in cats:
-#         cat_response.append({
-#             'id': cat.id,
-#             'name': cat.name,
-#             'age': cat.age,
-#             'color': cat.color
-#         })
-#     return jsonify(cat_response)
+    if chosen_cat is None:
+        rsp = {"msg": f"Could not find cat with id {cat_id}"}
+        return jsonify(rsp), 404
+    rsp = {
+        'id': chosen_cat.id,
+        'name': chosen_cat.name,
+        'age': chosen_cat.age,
+        'color': chosen_cat.color
+    }
+    return jsonify(rsp), 200
 
+@cats_bp.route('/<cat_id>', methods=['PUT', 'PATCH'])
+def put_one_cat(cat_id):
+    try:
+        cat_id = int(cat_id)
+    except ValueError:
+        rsp = {"msg": f"Invalid id: {cat_id}"}
+        return jsonify(rsp), 400
+    chosen_cat = Cat.query.get(cat_id)
 
-# @cats_bp.route('/<cat_id>', methods=['GET'])
-# def get_one_cat(cat_id):
-#     try:
-#         cat_id = int(cat_id)
-#     except ValueError:
-#         rsp = {"msg": f"Invalid id: {cat_id}"}
-#         return jsonify(rsp), 400
-#     chosen_cat = None
-#     for cat in cats:
-#         if cat.id == cat_id:
-#             chosen_cat = cat
-#             break
-#     if chosen_cat is None:
-#         rsp = {"msg": f"Could not find cat with id {cat_id}"}
-#         return jsonify(rsp), 404
-#     rsp = {
-#         'id': chosen_cat.id,
-#         'name': chosen_cat.name,
-#         'age': chosen_cat.age,
-#         'color': chosen_cat.color
-#     }
-#     return jsonify(rsp), 200
+    if chosen_cat is None:
+        rsp = {"msg": f"Could not find cat with id {cat_id}"}
+        return jsonify(rsp), 404
+
+    request_body = request.get_json()
+    try:
+        chosen_cat.name = request_body["name"]
+        chosen_cat.age = request_body["age"]
+        chosen_cat.color = request_body["color"]
+    except KeyError:
+        return {
+            "msg": "name, age, and color are required"
+        }, 400
+    db.session.commit()
+
+    return {
+        "msg": f"cat #{chosen_cat.id} successfully replaced"
+    }, 200
+
+@cats_bp.route("/<cat_id>", methods=["DELETE"])
+def delete_cat(cat_id):
+    try:
+        cat_id = int(cat_id)
+    except ValueError:
+        rsp = {"msg": f"Invalid id: {cat_id}"}
+        return jsonify(rsp), 400
+    
+    chosen_cat = Cat.query.get(cat_id)
+    if chosen_cat is None:
+        rsp = {"msg": f"Could not find cat with id {cat_id}"}
+        return jsonify(rsp), 404
+
+    db.session.delete(chosen_cat.id)
+    db.session.commit()
+
+    return {
+        "msg": f"cat #{chosen_cat.id} successfully destroyed"
+    }, 200
