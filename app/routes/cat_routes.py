@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, abort, make_response, request
 from ..models.cat import Cat
 from app import db
+from .routes_helper import error_message
 
 # class Cat:
 #     def __init__(self, id, name, color, personality):
@@ -25,16 +26,24 @@ from app import db
 
 bp = Blueprint("cats", __name__, url_prefix="/cats")
 
+def make_cat_safely(data_dict):
+    try:
+        return Cat.from_dict(data_dict)
+    except KeyError as err:
+        error_message(f"Missing key: {err}", 400)
+
+def replace_cat_safely(cat, data_dict):
+    try:
+        cat.replace_details(data_dict)
+    except KeyError as err:
+        error_message(f"Missing key: {err}", 400)
+
 # POST /cats
 @bp.route("", methods=("POST",))
 def create_cat():
     request_body = request.get_json()
 
-    cat = Cat(
-        name=request_body["name"],
-        color=request_body["color"],
-        personality=request_body["personality"],
-        )
+    cat = make_cat_safely(request_body)
 
     db.session.add(cat)
     db.session.commit()
@@ -45,7 +54,12 @@ def create_cat():
 
 @bp.route("", methods=("GET",))
 def index_cats():
-    cats = Cat.query.all()
+    color_param = request.args.get("color")
+
+    if color_param:
+        cats = Cat.query.filter_by(color=color_param)
+    else:
+        cats = Cat.query.all()
 
     result_list = [cat.to_dict() for cat in cats]
 
@@ -63,10 +77,8 @@ def replace_cat_by_id(cat_id):
     request_body = request.get_json()
     cat = get_cat_record_by_id(cat_id)
 
-    cat.name = request_body["name"]
-    cat.personality = request_body["personality"]
-    cat.color = request_body["color"]
-
+    replace_cat_safely(cat, request_body)
+    
     db.session.commit()
     return jsonify(cat.to_dict())
 
@@ -102,13 +114,13 @@ def get_cat_record_by_id(id):
     try:
         id = int(id)
     except ValueError:
-        abort(make_response(jsonify(dict(details=f"Invalid id {id}")), 400))
+        error_message(f"Invalid id {id}", 400)
 
     cat = Cat.query.get(id)
     if cat:
         return cat
 
-    abort(make_response(jsonify(dict(details=f"No cat with id {id} found")), 404))
+    error_message(f"No cat with id {id} found", 404)
 
 # def validate_cat(id):
 #     try:
