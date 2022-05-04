@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, abort, make_response
 from app.models.cats import Cat
 from app import db
 
@@ -14,12 +14,24 @@ def create_one_cat():
     db.session.commit()
     return {
         "id": new_cat.id,
-        "msg": f"Succesfully created cat with id {new_cat.id}"
+        "msg": f"Successfully created cat with id {new_cat.id}"
     }, 201
 
 @cats_bp.route('', methods=['GET'])
 def get_all_cats():
-    cats = Cat.query.all()
+    params = request.args
+    if "color" in params and "age" in params:
+        color_name = params["color"]
+        age_value = params["age"]
+        cats = Cat.query.filter_by(color=color_name, age=age_value)
+    elif "color" in params:
+        color_name = params["color"]
+        cats = Cat.query.filter_by(color=color_name)
+    elif "age" in params:
+        age_value = params["age"]
+        cats = Cat.query.filter_by(age=age_value)
+    else:
+        cats = Cat.query.all()
     cats_response = []
     for cat in cats:
         cats_response.append({
@@ -31,19 +43,23 @@ def get_all_cats():
     return jsonify(cats_response)
 
 
-
-@cats_bp.route('/<cat_id>', methods=['GET'])
-def get_one_cat(cat_id):
+def get_cat_or_abort(cat_id):
     try:
         cat_id = int(cat_id)
     except ValueError:
         rsp = {"msg": f"Invalid id: {cat_id}"}
-        return jsonify(rsp), 400
+        abort(make_response(jsonify(rsp), 400))
     chosen_cat = Cat.query.get(cat_id)
 
     if chosen_cat is None:
         rsp = {"msg": f"Could not find cat with id {cat_id}"}
-        return jsonify(rsp), 404
+        abort(make_response(jsonify(rsp), 404))
+    return chosen_cat
+    
+
+@cats_bp.route('/<cat_id>', methods=['GET'])
+def get_one_cat(cat_id):
+    chosen_cat = get_cat_or_abort(cat_id)
     rsp = {
         'id': chosen_cat.id,
         'name': chosen_cat.name,

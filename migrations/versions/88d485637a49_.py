@@ -1,8 +1,8 @@
-"""add Cat model
+"""empty message
 
-Revision ID: 0900bd478512
+Revision ID: 88d485637a49
 Revises: 
-Create Date: 2022-04-29 10:21:54.990073
+Create Date: 2022-05-03 16:08:05.898215
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '0900bd478512'
+revision = '88d485637a49'
 down_revision = None
 branch_labels = None
 depends_on = None
