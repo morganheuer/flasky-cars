@@ -4,6 +4,11 @@ from app import db
 
 cats_bp = Blueprint('cats_bp', __name__, url_prefix='/cats')
 
+DEBUG = True
+def print_debug(data):
+    if DEBUG:
+        print(data)
+
 @cats_bp.route('', methods=['POST'])
 def create_one_cat():
     request_body = request.get_json()
@@ -11,6 +16,7 @@ def create_one_cat():
                   age=request_body["age"],
                   color=request_body["color"])
     db.session.add(new_cat)
+    print_debug(new_cat)
     db.session.commit()
     return {
         "id": new_cat.id,
@@ -32,6 +38,7 @@ def get_all_cats():
         cats = Cat.query.filter_by(age=age_value)
     else:
         cats = Cat.query.all()
+        print_debug(cats)
     cats_response = []
     for cat in cats:
         cats_response.append({
@@ -50,6 +57,7 @@ def get_cat_or_abort(cat_id):
         rsp = {"msg": f"Invalid id: {cat_id}"}
         abort(make_response(jsonify(rsp), 400))
     chosen_cat = Cat.query.get(cat_id)
+    print_debug(chosen_cat)
 
     if chosen_cat is None:
         rsp = {"msg": f"Could not find cat with id {cat_id}"}
