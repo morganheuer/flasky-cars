@@ -70,16 +70,7 @@ def get_one_cat(cat_id):
 
 @cats_bp.route('/<cat_id>', methods=['PUT', 'PATCH'])
 def put_one_cat(cat_id):
-    try:
-        cat_id = int(cat_id)
-    except ValueError:
-        rsp = {"msg": f"Invalid id: {cat_id}"}
-        return jsonify(rsp), 400
-    chosen_cat = Cat.query.get(cat_id)
-
-    if chosen_cat is None:
-        rsp = {"msg": f"Could not find cat with id {cat_id}"}
-        return jsonify(rsp), 404
+    chosen_cat = get_cat_or_abort(cat_id)
 
     request_body = request.get_json()
     try:
@@ -98,16 +89,7 @@ def put_one_cat(cat_id):
 
 @cats_bp.route("/<cat_id>", methods=["DELETE"])
 def delete_cat(cat_id):
-    try:
-        cat_id = int(cat_id)
-    except ValueError:
-        rsp = {"msg": f"Invalid id: {cat_id}"}
-        return jsonify(rsp), 400
-    
-    chosen_cat = Cat.query.get(cat_id)
-    if chosen_cat is None:
-        rsp = {"msg": f"Could not find cat with id {cat_id}"}
-        return jsonify(rsp), 404
+    chosen_cat = get_cat_or_abort(cat_id)
 
     db.session.delete(chosen_cat)
     db.session.commit()
