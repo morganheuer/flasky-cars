@@ -1,8 +1,8 @@
-"""Created Car model
+"""empty message
 
-Revision ID: a430097c4bcd
+Revision ID: c641f96e21f0
 Revises: 
-Create Date: 2022-04-29 10:19:53.902689
+Create Date: 2022-05-10 09:11:25.116188
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'a430097c4bcd'
+revision = 'c641f96e21f0'
 down_revision = None
 branch_labels = None
 depends_on = None
