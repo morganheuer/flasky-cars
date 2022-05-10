@@ -5,13 +5,18 @@ class Cat(db.Model):
     name = db.Column(db.String, nullable=False)
     color = db.Column(db.String, nullable=False)
     personality = db.Column(db.String, nullable=False)
+    caretaker_id = db.Column(db.Integer, db.ForeignKey('caretaker.id'))
+    caretaker = db.relationship("Caretaker", back_populates="cats")
 
     def to_dict(self):
+        caretaker_name = self.caretaker.name if self.caretaker else ""
+
         return dict(
             id=self.id,
             name=self.name,
             color=self.color,
             personality=self.personality,
+            caretaker=caretaker_name,
         )
 
     @classmethod

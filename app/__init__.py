@@ -23,9 +23,10 @@ def create_app(test_config=None):
     db.init_app(app)
     migrate.init_app(app, db)
 
-    from .routes import cat_routes, dog_routes
+    from .routes import cat_routes, dog_routes, caretaker_routes
 
     app.register_blueprint(cat_routes.bp)
     app.register_blueprint(dog_routes.bp)
+    app.register_blueprint(caretaker_routes.bp)
 
     return app
