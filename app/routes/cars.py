@@ -10,8 +10,8 @@ def create_car():
     request_body = request.get_json()
 
     new_car = Car(
-        driver=request_body["driver"],
-        team=request_body["team"],
+        driver_id=request_body["driver_id"],
+        #team=request_body["team"],
         mass_kg=request_body["mass_kg"]
     )
 
@@ -28,12 +28,7 @@ def get_all_cars():
     cars = Car.query.all()
     for car in cars:
         response.append(
-            {
-                "id": car.id,
-                "driver": car.driver,
-                "team": car.team,
-                "mass_kg": car.mass_kg
-            }
+            car.to_dict()
         )
     return jsonify(response)
 
@@ -49,15 +44,10 @@ def get_one_car(car_id):
     if chosen_car is None:
         return jsonify({'msg': f'Could not find car with id {car_id}'}), 404 
             
-    return jsonify({
-        "id": chosen_car.id,
-        "driver": chosen_car.driver,
-        "team": chosen_car.team,
-        "mass_kg": chosen_car.mass_kg
-    })
+    return jsonify(chosen_car.to_dict())
     
-@cars_bp.route("/<car_id>", methods=["PUT"])
-def replace_one_car(car_id):
+@cars_bp.route("/<car_id>", methods=["PATCH"])
+def update_one_car(car_id):
     try:
         car_id = int(car_id)
     except ValueError:
@@ -65,9 +55,7 @@ def replace_one_car(car_id):
 
     request_body = request.get_json()
 
-    if "driver" not in request_body or \
-       "team" not in request_body or \
-       "mass_kg" not in request_body:
+    if "mass_kg" not in request_body:
        return jsonify({'msg': f"Request must include driver, team, and mass_kg"}), 400
 
     chosen_car = Car.query.get(car_id)
@@ -75,8 +63,6 @@ def replace_one_car(car_id):
     if chosen_car is None:
         return jsonify({'msg': f'Could not find car with id {car_id}'}), 404
 
-    chosen_car.driver = request_body["driver"]
-    chosen_car.team = request_body["team"]
     chosen_car.mass_kg = request_body["mass_kg"]
 
     db.session.commit()
